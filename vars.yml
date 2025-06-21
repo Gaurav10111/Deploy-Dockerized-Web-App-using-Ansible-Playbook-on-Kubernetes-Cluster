@@ -1,0 +1,7 @@
+image_name: mywebapp
+image_tag: latest
+container_port: 80
+deployment_name: mywebapp-deploy
+service_name: mywebapp-service
+namespace: default
+
