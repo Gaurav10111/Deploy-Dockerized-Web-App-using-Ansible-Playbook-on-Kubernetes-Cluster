@@ -1,0 +1,39 @@
+- name: Dockerized Web App Deployment on K8s with Ansible
+  hosts: localhost
+  vars_files:
+    - vars.yml
+  tasks:
+
+    - name: Build Docker image
+      community.docker.docker_image:
+        name: "{{ image_name }}"
+        tag: "{{ image_tag }}"
+        source: build
+        build:
+          path: "./app"
+
+    - name: Save image to Minikube
+      command: >
+        minikube image load {{ image_name }}:{{ image_tag }}
+      changed_when: true
+
+    - name: Template K8s deployment manifest
+      template:
+        src: k8s/deployment.yml.j2
+        dest: k8s/deployment.yml
+
+    - name: Template K8s service manifest
+      template:
+        src: k8s/service.yml.j2
+        dest: k8s/service.yml
+
+    - name: Apply K8s deployment
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', 'k8s/deployment.yml') }}"
+
+    - name: Apply K8s service
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', 'k8s/service.yml') }}"
+
